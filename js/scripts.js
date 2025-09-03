@@ -44,190 +44,328 @@ window.addEventListener('DOMContentLoaded', event => {
         });
     });
 
+
+  document.querySelectorAll(".carousel-section").forEach(section => {
+      let members = [];
+      try {
+          members = JSON.parse(section.dataset.members || "[]");
+      } catch (e) {
+          console.error("⚠️ Erreur JSON dans data-members", e);
+      }
+
+      const container = section.querySelector(".carousel-container");
+      const track = container.querySelector(".carousel-track");
+      const dotsContainer = section.querySelector(".dots");
+
+      // Nettoyer avant (au cas où)
+      track.innerHTML = "";
+      dotsContainer.innerHTML = "";
+
+      // Générer cartes et points
+      members.forEach((m, i) => {
+          // --- carte ---
+          const card = document.createElement("div");
+          card.className = "card";
+          card.dataset.index = i;
+
+          let imgHtml = `<img src="${m.img || "https://via.placeholder.com/300"}" alt="${m.name}">`;
+          if (m.link) {
+              imgHtml = `<a href="${m.link}" target="_blank">${imgHtml}</a>`;
+          }
+          card.innerHTML = imgHtml;
+
+          track.appendChild(card);
+
+          // --- dot ---
+          const dot = document.createElement("div");
+          dot.className = "dot";
+          dot.dataset.index = i;
+          if (i === 0) dot.classList.add("active");
+          dotsContainer.appendChild(dot);
+      });
+
+      // Initialiser le carrousel
+      initCarousel(container, members);
+  });
+
+  // --- Fonction générique de carrousel ---
+  function initCarousel(container, members) {
+      const cards = Array.from(container.querySelectorAll(".card"));
+      const dots = Array.from(container.parentElement.querySelectorAll(".dot"));
+      const memberName = container.parentElement.querySelector(".member-name");
+      const memberRole = container.parentElement.querySelector(".member-role");
+      const leftArrow = container.querySelector(".nav-arrow.left");
+      const rightArrow = container.querySelector(".nav-arrow.right");
+
+      let currentIndex = 0;
+      let isAnimating = false;
+      let pendingIndex = null;
+
+      function normalizeIndex(i) {
+          const n = cards.length;
+          return ((i % n) + n) % n;
+      }
+
+      function updateCarousel(newIndex) {
+          if (isAnimating) {
+              pendingIndex = newIndex;
+              return;
+          }
+          isAnimating = true;
+
+          const n = cards.length;
+          currentIndex = normalizeIndex(newIndex);
+
+          const half = Math.floor(n / 2);
+          cards.forEach((card, i) => {
+              let diff = i - currentIndex;
+              diff = ((diff + n + half) % n) - half;
+
+              card.classList.remove("center", "left-1", "left-2", "right-1", "right-2", "hidden");
+
+              if (diff === 0) card.classList.add("center");
+              else if (diff === 1) card.classList.add("right-1");
+              else if (diff === 2) card.classList.add("right-2");
+              else if (diff === -1) card.classList.add("left-1");
+              else if (diff === -2) card.classList.add("left-2");
+              else card.classList.add("hidden");
+          });
+
+          dots.forEach((dot, i) => dot.classList.toggle("active", i === currentIndex));
+
+          if (memberName && memberRole && members[currentIndex]) {
+              memberName.style.opacity = "0";
+              memberRole.style.opacity = "0";
+              setTimeout(() => {
+                  memberName.textContent = members[currentIndex].name;
+                  memberRole.textContent = members[currentIndex].role;
+                  memberName.style.opacity = "1";
+                  memberRole.style.opacity = "1";
+              }, 250);
+          }
+
+          // Transition
+          const centerCard = cards[currentIndex];
+          if (!centerCard) { isAnimating = false; return; }
+          const cs = window.getComputedStyle(centerCard);
+          let td = cs.transitionDuration.split(',')[0].trim();
+          let durationMs = td.endsWith('ms') ? parseFloat(td) :
+                           td.endsWith('s')  ? parseFloat(td) * 1000 : 0;
+
+          let handled = false;
+          const onTransitionEnd = (e) => {
+              if (e.target !== centerCard) return;
+              if (e.propertyName && e.propertyName !== 'transform') return;
+              if (handled) return;
+              handled = true;
+              centerCard.removeEventListener('transitionend', onTransitionEnd);
+              isAnimating = false;
+              if (pendingIndex !== null) {
+                  const next = pendingIndex;
+                  pendingIndex = null;
+                  requestAnimationFrame(() => updateCarousel(next));
+              }
+          };
+
+          if (durationMs > 0) {
+              centerCard.addEventListener('transitionend', onTransitionEnd);
+              setTimeout(() => {
+                  if (!handled) {
+                      handled = true;
+                      centerCard.removeEventListener('transitionend', onTransitionEnd);
+                      isAnimating = false;
+                  }
+              }, durationMs + 80);
+          } else {
+              isAnimating = false;
+          }
+      }
+
+      // Listeners
+      if (leftArrow) leftArrow.addEventListener("click", () => updateCarousel(currentIndex - 1));
+      if (rightArrow) rightArrow.addEventListener("click", () => updateCarousel(currentIndex + 1));
+      dots.forEach((dot, i) => dot.addEventListener("click", () => updateCarousel(i)));
+      cards.forEach((card, i) => card.addEventListener("click", () => updateCarousel(i)));
+
+      // Init
+      updateCarousel(0);
+  }
+
+
+
     // --- Carousel robuste avec queue et détection transitionend ---
-    const teamMembers = [
-        { name: "Pac-Man", role: "GAME" },
-        { name: "PorteFolio", role: "Website" },
-        { name: "Emma Rodriguez", role: "Lead Developer" },
-        { name: "Julia Gimmel", role: "UX Designer" },
-        { name: "Lisa Anderson", role: "Marketing Manager" },
-        { name: "James Wilson", role: "Product Manager" }
-    ];
-
-    const teamMembers2 = [
-            { name: "GIT", role: "Zertifikat" },
-            { name: "Bootstrap 5", role: "Zertifikat" },
-            { name: "Angular", role: "Zertifikat" },
-            { name: "Node.js", role: "Zertifikat" },
-            { name: "Typescript", role: "Zertifikat" }
-
-        ];
-
-    const cards = Array.from(document.querySelectorAll(" .card"));
-    const dots = Array.from(document.querySelectorAll(" .dot"));
-    const memberName = document.querySelector(" .member-name");
-    const memberRole = document.querySelector(" .member-role");
-    const leftArrow = document.querySelector(".nav-arrow.left");
-    const rightArrow = document.querySelector(" .nav-arrow.right");
-
-    let currentIndex = 0;
-    let isAnimating = false;
-    let pendingIndex = null;
-
-    // normaliser l’index dans le carousel
-    function normalizeIndex(i) {
-        const n = cards.length;
-        return ((i % n) + n) % n;
-    }
-
-    function updateCarousel(newIndex) {
-        if (isAnimating) {
-            pendingIndex = newIndex;
-            return;
-        }
-        isAnimating = true;
-
-        const n = cards.length;
-        currentIndex = normalizeIndex(newIndex);
-
-        const half = Math.floor(n / 2);
-        cards.forEach((card, i) => {
-            let diff = i - currentIndex;
-            diff = ((diff + n + half) % n) - half;
-
-            card.classList.remove("center", "left-1", "left-2", "right-1", "right-2", "hidden");
-
-            if (diff === 0) card.classList.add("center");
-            else if (diff === 1) card.classList.add("right-1");
-            else if (diff === 2) card.classList.add("right-2");
-            else if (diff === -1) card.classList.add("left-1");
-            else if (diff === -2) card.classList.add("left-2");
-            else card.classList.add("hidden");
-        });
-
-        // points
-        dots.forEach((dot, i) => dot.classList.toggle("active", i === currentIndex));
-
-        // texte avec fondu
-        if (memberName && memberRole) {
-            memberName.style.opacity = "0";
-            memberRole.style.opacity = "0";
-            setTimeout(() => {
-                memberName.textContent = teamMembers[currentIndex].name;
-                memberRole.textContent = teamMembers[currentIndex].role;
-                memberName.style.opacity = "1";
-                memberRole.style.opacity = "1";
-            }, 250);
-            setTimeout(() => {
-                                    memberName.textContent = teamMembers2[currentIndex].name;
-                                    memberRole.textContent = teamMembers2[currentIndex].role;
-                                    memberName.style.opacity = "1";
-                                    memberRole.style.opacity = "1";
-                                }, 250);
-        }
-
+//    const teamMembers = [
+//        { name: "Pac-Man", role: "GAME" },
+//        { name: "PorteFolio", role: "Website" },
+//        { name: "Emma Rodriguez", role: "Lead Developer" },
+//        { name: "Julia Gimmel", role: "UX Designer" },
+//        { name: "Lisa Anderson", role: "Marketing Manager" },
+//        { name: "James Wilson", role: "Product Manager" }
+//    ];
+//
+//    const teamMembers2 = [
+//            { name: "GIT", role: "Zertifikat" },
+//            { name: "Bootstrap 5", role: "Zertifikat" },
+//            { name: "Angular", role: "Zertifikat" },
+//            { name: "Node.js", role: "Zertifikat" },
+//            { name: "Typescript", role: "Zertifikat" }
+//
+//        ];
+//
+//    const cards = Array.from(document.querySelectorAll(" .card"));
+//    const dots = Array.from(document.querySelectorAll(" .dot"));
+//    const memberName = document.querySelector(" .member-name");
+//    const memberRole = document.querySelector(" .member-role");
+//    const leftArrow = document.querySelector(".nav-arrow.left");
+//    const rightArrow = document.querySelector(" .nav-arrow.right");
+//
+//    let currentIndex = 0;
+//    let isAnimating = false;
+//    let pendingIndex = null;
+//
+//    // normaliser l’index dans le carousel
+//    function normalizeIndex(i) {
+//        const n = cards.length;
+//        return ((i % n) + n) % n;
+//    }
+//
+//    function updateCarousel(newIndex) {
+//        if (isAnimating) {
+//            pendingIndex = newIndex;
+//            return;
+//        }
+//        isAnimating = true;
+//
+//        const n = cards.length;
+//        currentIndex = normalizeIndex(newIndex);
+//
+//        const half = Math.floor(n / 2);
+//        cards.forEach((card, i) => {
+//            let diff = i - currentIndex;
+//            diff = ((diff + n + half) % n) - half;
+//
+//            card.classList.remove("center", "left-1", "left-2", "right-1", "right-2", "hidden");
+//
+//            if (diff === 0) card.classList.add("center");
+//            else if (diff === 1) card.classList.add("right-1");
+//            else if (diff === 2) card.classList.add("right-2");
+//            else if (diff === -1) card.classList.add("left-1");
+//            else if (diff === -2) card.classList.add("left-2");
+//            else card.classList.add("hidden");
+//        });
+//
+//        // points
+//        dots.forEach((dot, i) => dot.classList.toggle("active", i === currentIndex));
+//
+//        // texte avec fondu
 //        if (memberName && memberRole) {
-//                    memberName.style.opacity = "0";
-//                    memberRole.style.opacity = "0";
-//                    setTimeout(() => {
-//                        memberName.textContent = teamMembers2[currentIndex].name;
-//                        memberRole.textContent = teamMembers2[currentIndex].role;
-//                        memberName.style.opacity = "1";
-//                        memberRole.style.opacity = "1";
-//                    }, 250);
+//            memberName.style.opacity = "0";
+//            memberRole.style.opacity = "0";
+//            setTimeout(() => {
+//                memberName.textContent = teamMembers[currentIndex].name;
+//                memberRole.textContent = teamMembers[currentIndex].role;
+//                memberName.style.opacity = "1";
+//                memberRole.style.opacity = "1";
+//            }, 250);
+//            setTimeout(() => {
+//                                    memberName.textContent = teamMembers2[currentIndex].name;
+//                                    memberRole.textContent = teamMembers2[currentIndex].role;
+//                                    memberName.style.opacity = "1";
+//                                    memberRole.style.opacity = "1";
+//                                }, 250);
+//        }
+//
+//        // transitionend sur carte centrale
+//        const centerCard = cards[currentIndex];
+//        if (!centerCard) {
+//            isAnimating = false;
+//            if (pendingIndex !== null) { const next = pendingIndex; pendingIndex = null; updateCarousel(next); }
+//            return;
+//        }
+//
+//        const cs = window.getComputedStyle(centerCard);
+//        let td = cs.transitionDuration.split(',')[0].trim();
+//        let durationMs = td.endsWith('ms') ? parseFloat(td) :
+//                         td.endsWith('s')  ? parseFloat(td) * 1000 : 0;
+//
+//        let handled = false;
+//        const onTransitionEnd = (e) => {
+//            if (e.target !== centerCard) return;
+//            if (e.propertyName && e.propertyName !== 'transform') return;
+//            if (handled) return;
+//            handled = true;
+//            centerCard.removeEventListener('transitionend', onTransitionEnd);
+//            isAnimating = false;
+//            if (pendingIndex !== null) {
+//                const next = pendingIndex;
+//                pendingIndex = null;
+//                requestAnimationFrame(() => updateCarousel(next));
+//            }
+//        };
+//
+//        if (durationMs > 0) {
+//            centerCard.addEventListener('transitionend', onTransitionEnd);
+//            setTimeout(() => {
+//                if (!handled) {
+//                    handled = true;
+//                    centerCard.removeEventListener('transitionend', onTransitionEnd);
+//                    isAnimating = false;
+//                    if (pendingIndex !== null) {
+//                        const next = pendingIndex;
+//                        pendingIndex = null;
+//                        requestAnimationFrame(() => updateCarousel(next));
+//                    }
 //                }
-
-        // transitionend sur carte centrale
-        const centerCard = cards[currentIndex];
-        if (!centerCard) {
-            isAnimating = false;
-            if (pendingIndex !== null) { const next = pendingIndex; pendingIndex = null; updateCarousel(next); }
-            return;
-        }
-
-        const cs = window.getComputedStyle(centerCard);
-        let td = cs.transitionDuration.split(',')[0].trim();
-        let durationMs = td.endsWith('ms') ? parseFloat(td) :
-                         td.endsWith('s')  ? parseFloat(td) * 1000 : 0;
-
-        let handled = false;
-        const onTransitionEnd = (e) => {
-            if (e.target !== centerCard) return;
-            if (e.propertyName && e.propertyName !== 'transform') return;
-            if (handled) return;
-            handled = true;
-            centerCard.removeEventListener('transitionend', onTransitionEnd);
-            isAnimating = false;
-            if (pendingIndex !== null) {
-                const next = pendingIndex;
-                pendingIndex = null;
-                requestAnimationFrame(() => updateCarousel(next));
-            }
-        };
-
-        if (durationMs > 0) {
-            centerCard.addEventListener('transitionend', onTransitionEnd);
-            setTimeout(() => {
-                if (!handled) {
-                    handled = true;
-                    centerCard.removeEventListener('transitionend', onTransitionEnd);
-                    isAnimating = false;
-                    if (pendingIndex !== null) {
-                        const next = pendingIndex;
-                        pendingIndex = null;
-                        requestAnimationFrame(() => updateCarousel(next));
-                    }
-                }
-            }, durationMs + 80);
-        } else {
-            isAnimating = false;
-            if (pendingIndex !== null) {
-                const next = pendingIndex;
-                pendingIndex = null;
-                requestAnimationFrame(() => updateCarousel(next));
-            }
-        }
-    }
-
-    // --- Listeners ---
-
-    // flèches clic
-    if (leftArrow) leftArrow.addEventListener("click", () => updateCarousel(currentIndex - 1));
-    if (rightArrow) rightArrow.addEventListener("click", () => updateCarousel(currentIndex + 1));
-
-    // points et cartes clic
-    dots.forEach((dot, i) => dot.addEventListener("click", () => updateCarousel(i)));
-    cards.forEach((card, i) => card.addEventListener("click", () => updateCarousel(i)));
-
-    // clavier
-    document.addEventListener("keydown", (e) => {
-        if (e.key === "ArrowLeft") updateCarousel(currentIndex - 1);
-        else if (e.key === "ArrowRight") updateCarousel(currentIndex + 1);
-    });
-
-    // swipe tactile
-    let touchStartX = 0, touchEndX = 0;
-    document.addEventListener("touchstart", (e) => touchStartX = e.changedTouches[0].screenX);
-    document.addEventListener("touchend", (e) => {
-        touchEndX = e.changedTouches[0].screenX;
-        const diff = touchStartX - touchEndX;
-        if (Math.abs(diff) > 50) {
-            if (diff > 0) updateCarousel(currentIndex + 1);
-            else updateCarousel(currentIndex - 1);
-        }
-    });
-
-//    // molette souris
-//    document.addEventListener("wheel", (e) => {
-//        if (isAnimating) return;
-//        // empêcher le scroll de la page
-//        e.preventDefault();
-//        if (e.deltaY < 0) updateCarousel(currentIndex - 1);
-//        else if (e.deltaY > 0) updateCarousel(currentIndex + 1);
-//    },{passive:false});
-
-    // initialisation
-    updateCarousel(0);
+//            }, durationMs + 80);
+//        } else {
+//            isAnimating = false;
+//            if (pendingIndex !== null) {
+//                const next = pendingIndex;
+//                pendingIndex = null;
+//                requestAnimationFrame(() => updateCarousel(next));
+//            }
+//        }
+//    }
+//
+//    // --- Listeners ---
+//
+//    // flèches clic
+//    if (leftArrow) leftArrow.addEventListener("click", () => updateCarousel(currentIndex - 1));
+//    if (rightArrow) rightArrow.addEventListener("click", () => updateCarousel(currentIndex + 1));
+//
+//    // points et cartes clic
+//    dots.forEach((dot, i) => dot.addEventListener("click", () => updateCarousel(i)));
+//    cards.forEach((card, i) => card.addEventListener("click", () => updateCarousel(i)));
+//
+//    // clavier
+//    document.addEventListener("keydown", (e) => {
+//        if (e.key === "ArrowLeft") updateCarousel(currentIndex - 1);
+//        else if (e.key === "ArrowRight") updateCarousel(currentIndex + 1);
+//    });
+//
+//    // swipe tactile
+//    let touchStartX = 0, touchEndX = 0;
+//    document.addEventListener("touchstart", (e) => touchStartX = e.changedTouches[0].screenX);
+//    document.addEventListener("touchend", (e) => {
+//        touchEndX = e.changedTouches[0].screenX;
+//        const diff = touchStartX - touchEndX;
+//        if (Math.abs(diff) > 50) {
+//            if (diff > 0) updateCarousel(currentIndex + 1);
+//            else updateCarousel(currentIndex - 1);
+//        }
+//    });
+//
+////    // molette souris
+////    document.addEventListener("wheel", (e) => {
+////        if (isAnimating) return;
+////        // empêcher le scroll de la page
+////        e.preventDefault();
+////        if (e.deltaY < 0) updateCarousel(currentIndex - 1);
+////        else if (e.deltaY > 0) updateCarousel(currentIndex + 1);
+////    },{passive:false});
+//
+//    // initialisation
+//    updateCarousel(0);
 
     // --- Effet d'écriture en boucle ---
         const element = document.getElementById("typewriter");
