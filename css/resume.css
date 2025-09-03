@@ -1,0 +1,134 @@
+/* === GLOBAL === */
+body {
+  background-color: #111;
+  color: #fff;
+  margin: 0;
+  padding: 0;
+  font-family: Nunito;
+}
+
+.text-gradient {
+  background: linear-gradient(315deg, #1e30f3 0%, #e21e80 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* === SECTION RESUME === */
+.resume-section {
+  padding: 100px 20px 60px 20px;
+}
+
+.resume-section h1 {
+  font-size: 2.5rem;
+  font-weight: bold;
+}
+
+.resume-section h2 {
+  font-size: 1.5rem;
+  margin-bottom: 30px;
+  font-weight: bold;
+}
+
+/* === GRID LAYOUT === */
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 40px;
+}
+
+.col-lg-6 {
+  flex: 1;
+  min-width: 300px;
+}
+
+/* === TIMELINE === */
+.timeline {
+  position: relative;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 20px;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: linear-gradient(180deg, #1e30f3, #e21e80);
+  border-radius: 2px;
+}
+
+.timeline-item {
+  position: relative;
+  margin-left: 60px;
+  margin-bottom: 40px;
+  padding-bottom: 10px;
+}
+
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: -40px;
+  top: 5px;
+  width: 20px;
+  height: 20px;
+  background-color: #e21e80;
+  border-radius: 50%;
+  border: 3px solid #1e30f3;
+}
+
+.timeline-item h4 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #1e30f3;
+}
+
+.timeline-item h5 {
+  margin: 5px 0;
+  font-size: 1rem;
+  color: #ccc;
+}
+
+.timeline-item p,
+.timeline-item ul {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #bbb;
+}
+
+.timeline-item ul {
+  padding-left: 18px;
+  margin-top: 8px;
+}
+
+/* === BUTTON === */
+.btn-download {
+  display: inline-block;
+  padding: 12px 24px;
+  font-size: 1rem;
+  font-weight: bold;
+  color: #fff;
+  background: linear-gradient(90deg, #1e30f3, #e21e80);
+  border: none;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: 0.3s;
+}
+
+.btn-download:hover {
+  transform: scale(1.08);
+  box-shadow: 0 0 15px #1e30f3, 0 0 15px #e21e80;
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 992px) {
+  .row {
+    flex-direction: column;
+  }
+  .col-lg-6 {
+    width: 100%;
+  }
+}

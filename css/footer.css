@@ -1,0 +1,39 @@
+/* Footer global */
+.footer {
+
+  color: #fff;
+  padding: 30px 0;
+  text-align: center;
+  margin-top: 0px; /* espace avec le contenu au-dessus */
+  position: relative;
+  bottom: 0;
+  width: 100%;
+  z-index: 10; /* Passe au-dessus de l’iframe */
+}
+
+/* Texte en dégradé (reprend ton style .text-gradient) */
+.footer .text-gradient {
+  background: linear-gradient(315deg, #1e30f3 0%, #e21e80 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: bold;
+}
+
+/* Icônes sociales */
+.footer a {
+  color: #fff;
+  margin: 0 10px;
+  transition: all 0.3s ease;
+}
+
+/* Effet hover : dégradé sur les icônes */
+.footer a:hover {
+  color: #e21e80;
+  transform: scale(1.2);
+}
+
+/* Icônes Font Awesome */
+.footer i {
+  transition: all 0.3s ease;
+}

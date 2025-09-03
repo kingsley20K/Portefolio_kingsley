@@ -1,0 +1,126 @@
+/* Container de la section skills */
+.skills-section {
+    background-color: black; /* fond sombre pour le contraste */
+    padding: 80px 0;
+}
+
+/* Titres */
+.skills-section h2, .skills-section h4 {
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 2rem;
+    color: #fff;
+}
+
+/* Chaque skill */
+.skill {
+    margin-bottom: 1.5rem;
+}
+
+.skill span {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #fff;
+    font-weight: 500;
+}
+
+/* Barre de progression de base */
+.progress-bar {
+  height: 25px;
+  width: 0; /* démarre vide */
+  background: linear-gradient(90deg, #1e30f3, #e21e80);
+  border-radius: 12px;
+  transition: width 2s ease-in-out;
+}
+/* Remplissage avec effet gradient */
+.progress-bar-wrap {
+  background: #222;      /* fond gris foncé */
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+/* Glow animé à la fin du remplissage */
+.progress-bar.glow {
+    animation: glow 1.2s ease-in-out forwards;
+}
+
+@keyframes glow {
+    0% {
+        box-shadow: 0 0 5px rgba(255,255,255,0.2) inset;
+    }
+    50% {
+        box-shadow: 0 0 20px rgba(255,255,255,0.7) inset,
+                    0 0 15px rgba(255,30,128,0.5),
+                    0 0 25px rgba(30,48,243,0.5);
+    }
+    100% {
+        box-shadow: 0 0 10px rgba(255,255,255,0.3) inset;
+    }
+}
+
+.tooltip-name {
+  position: relative;
+  cursor: pointer;
+   display: inline-block;
+    z-index: 10; /* pour que le span lui-même soit au-dessus */
+}
+.tooltip-text {
+  color: #fff;
+}
+
+.tooltip-name .tooltip-text {
+  visibility: hidden;
+  opacity: 0;
+  background: linear-gradient(135deg, #ff0080, #7928ca, #00bfff);
+  color: #fff:important;
+  padding: 4px 10px;
+  border-radius: 6px;
+  position: absolute;
+  bottom: 140%;
+  left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  white-space: nowrap;
+  font-size: 0.8rem;
+  font-weight: bold;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  z-index: 999999:important;
+  pointer-events: none;
+
+  /* Effet glow dégradé */
+  border: 1px solid transparent;
+    background-clip: padding-box;
+    box-shadow: 0 0 10px rgba(255, 0, 150, 0.6), 0 0 20px rgba(0, 150, 255, 0.6);
+}
+
+.tooltip-name:hover .tooltip-text {
+  visibility: visible;
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.portrait {
+  opacity: 0.7;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.portrait:hover {
+  opacity: 1;
+  transform: scale(1.05); /* léger zoom */
+}
+
+.interactive-section {
+    transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.3s ease;
+    opacity: 0.95; /* léger effet de transparence par défaut */
+}
+
+.interactive-section:hover {
+    transform: scale(1.02); /* léger zoom de la section */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); /* glow autour */
+    opacity: 1; /* pleine opacité */
+}
+
+.val {
+    float: right;
+    font-style: normal;
+}
